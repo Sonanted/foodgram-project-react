@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from recipes.models import Tag, Recipe, Ingredient
 from users.models import User, Subscribe
 
+from .pagination import FoodPagination
 from .permissions import UserPermission, IsReadOnly
-from .serializers import UserSerializer, TagSerializer, IngredientSerializer, SubscribeSerializer
+from .serializers import UserSerializer, TagSerializer, IngredientSerializer, SubscribeSerializer, RecipeSerializer
 
 SUBSCRIBE_TO_YOURSELF_ERROR = 'Нельзя подписатья на самого себя!'
 UNSUBSCRIBE_TO_YOURSELF_ERROR = 'Вы пытаетесь отписаться от самого себя!'
@@ -64,6 +65,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 class SubscribeViewSet(viewsets.ModelViewSet):
     serializer_class = SubscribeSerializer
+    pagination_class = FoodPagination
     permission_classes = (IsAuthenticated,)
 
     def get_author(self, user_id):
@@ -71,12 +73,18 @@ class SubscribeViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         queryset = User.objects.filter(following__user=self.request.user)
-        serializer = SubscribeSerializer(
-            queryset,
-            many=True,
-            context={'request': request}
-        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+        # serializer = SubscribeSerializer(
+        #     queryset,
+        #     many=True,
+        #     context={'request': request}
+        # )
+        # return Response(serializer.data)
 
     def create(self, request, user_id=None):
         author = self.get_author(user_id)
@@ -108,3 +116,8 @@ class SubscribeViewSet(viewsets.ModelViewSet):
             author=author
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    serializer_class = RecipeSerializer
+    queryset = Recipe.objects.all()

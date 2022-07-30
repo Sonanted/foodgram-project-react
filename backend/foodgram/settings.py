@@ -95,6 +95,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.FoodPagination',
+    'PAGE_SIZE': 9,
 }
 
 LANGUAGE_CODE = 'en-us'

@@ -1,13 +1,14 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from djoser.views import TokenCreateView, TokenDestroyView
-from .views import UserViewSet, TagViewSet, IngredientViewSet, SubscribeViewSet
+from .views import UserViewSet, TagViewSet, IngredientViewSet, SubscribeViewSet, RecipeViewSet
 
 
 api_router = DefaultRouter()
 api_router.register('users', UserViewSet, basename='users')
 api_router.register('tags', TagViewSet, basename='tags')
 api_router.register('ingredients', IngredientViewSet, basename='ingredients')
+api_router.register('recipes', RecipeViewSet, basename='recipes')
 api_router.register(r'users/(?P<user_id>\d+)/subscribe', SubscribeViewSet, basename='subscribe')
 # api_router.register(r'users/subscriptions', SubscriptionsViewSet, basename='subscriptions')
 

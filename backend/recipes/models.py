@@ -24,6 +24,9 @@ class Tag(models.Model):
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
+    def __str__(self):
+        return f'{self.name[:20]}, {self.slug[:20]}'
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -36,6 +39,9 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return f'{self.name[:20]}, {self.measurement_unit[:20]}'
 
 
 class Recipe(models.Model):
@@ -58,6 +64,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         to=Ingredient,
+        through='IngredientRecipe',
         related_name='recipes',
         verbose_name='Ингредиенты'
     )
@@ -79,7 +86,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
 
-class IngredientInRecipe(models.Model):
+class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         to=Recipe,
         on_delete=models.CASCADE,
