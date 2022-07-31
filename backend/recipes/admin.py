@@ -1,9 +1,8 @@
 from django.contrib import admin
 
-from .models import Favorite, Recipe, Ingredient, Tag, IngredientRecipe
+from .models import Favorite, Ingredient, IngredientRecipe, Recipe, Tag
 
 
-# Register your models here.
 class TagAdmin(admin.ModelAdmin):
     list_display = (
         'id',

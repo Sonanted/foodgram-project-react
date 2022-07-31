@@ -90,7 +90,7 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         to=Recipe,
         on_delete=models.CASCADE,
-        related_name='used_in',
+        related_name='consists_of',
         verbose_name='Рецепт'
         )
     ingredient = models.ForeignKey(
@@ -102,6 +102,14 @@ class IngredientRecipe(models.Model):
     amount = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1)]
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
 
 
 class Favorite(models.Model):
