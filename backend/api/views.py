@@ -172,29 +172,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
-        text_lines = []
-        text_lines.append('Список покупок\n')
-        IngredientRecipe.objects.filter(
-            recipe__cart__user=request.user
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(
-            amount=Sum('amount')
-        )
+        text_lines = ['Список покупок\n']
         for item in IngredientRecipe.objects.filter(
             recipe__cart__user=request.user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(
-            amount=Sum('amount')
+            amount=Sum('total_amount')
         ):
             text_lines.append(
                 CART_INGREDIENTS_FORMAT.format(
                     name=item['ingredient__name'],
                     measurement_unit=item['ingredient__measurement_unit'],
-                    amount=item['amount']
+                    amount=item['total_amount']
                 )
             )
         response_content = '\n'.join(text_lines)
