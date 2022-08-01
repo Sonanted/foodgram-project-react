@@ -71,7 +71,7 @@ class RecipeCutSerializer(serializers.ModelSerializer):
 
 class SubscribeSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
+    recipes = RecipeCutSerializer(many=True)
     recipes_count = serializers.IntegerField(
         source='recipes.count',
         read_only=True
@@ -95,9 +95,6 @@ class SubscribeSerializer(serializers.ModelSerializer):
         if request.user.is_anonymous:
             return False
         return obj.following.filter(user=request.user).exists()
-
-    def get_recipes(self, obj):
-        return RecipeCutSerializer(obj.recipes.all(), many=True).data
 
 
 class IngredientRecipeReadSerializer(serializers.ModelSerializer):
@@ -195,14 +192,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return data
 
     def add_ingredients(self, recipe, ingredients):
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            id = ingredient['id']
-            IngredientRecipe.objects.create(
-                ingredient=get_object_or_404(Ingredient, id=id),
+        ingredients_list = [
+            IngredientRecipe(
+                ingredient=get_object_or_404(Ingredient, id=ingredient['id']),
                 recipe=recipe,
-                amount=amount
-            )
+                amount=ingredient['amount']
+            ) for ingredient in ingredients
+        ]
+        IngredientRecipe.objects.bulk_create(ingredients_list)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')

@@ -1,6 +1,7 @@
-from django.http import FileResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
+from django.db.models.aggregates import Count, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 from rest_framework import status, validators, viewsets
@@ -24,6 +25,7 @@ UNSUBSCRIBE_TO_YOURSELF_ERROR = 'Вы пытаетесь отписаться о
 EXIST_SUBSCRIBE_ERROR = 'Вы уже подписаны на этого пользователя!'
 NON_EXIST_UNSUBSCRIBE_ERROR = 'Вы и так не подписаны на этого пользователя!'
 CART_INGREDIENTS_FORMAT = '\t{name}, {measurement_unit}: {amount}'
+SHOPPING_CART_FILENAME = 'shopping_cart.txt'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -32,10 +34,8 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (UserPermission,)
 
     def perform_create(self, serializer):
-        username = serializer.validated_data['username']
         password = serializer.validated_data['password']
-        serializer.save()
-        user = get_object_or_404(User, username=username)
+        user = serializer.save()
         user.set_password(password)
         user.save()
 
@@ -50,13 +50,12 @@ class UserViewSet(viewsets.ModelViewSet):
             data=request.data,
             context={'request': request}
         )
-        if serializer.is_valid():
-            self.request.user.set_password(
-                serializer.validated_data['new_password']
-            )
-            self.request.user.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        self.request.user.set_password(
+            serializer.validated_data['new_password']
+        )
+        self.request.user.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -140,72 +139,71 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(
-        detail=True, methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,)
-    )
-    def favorite(self, request, pk):
+    def get_intersection_model(self, request, pk, model):
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = RecipeCutSerializer(recipe, context={'request': request})
         if request.method == 'POST':
-            Favorite.objects.create(
+            model.objects.create(
                 user=request.user,
                 recipe=recipe
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            Favorite.objects.filter(
+            model.objects.filter(
                 user=request.user,
                 recipe=recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True, methods=['post', 'delete'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def favorite(self, request, pk):
+        return self.get_intersection_model(request, pk, Favorite)
 
     @action(
         detail=True, methods=['post', 'delete'],
         permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = RecipeCutSerializer(recipe, context={'request': request})
-        if request.method == 'POST':
-            ShoppingCart.objects.create(
-                user=request.user,
-                recipe=recipe
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            ShoppingCart.objects.filter(
-                user=request.user,
-                recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.get_intersection_model(request, pk, ShoppingCart)
 
     @action(
         detail=False, methods=['get'],
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
-        prev_name = ''
-        cart = open('shopping_cart.txt', 'w+', encoding='utf-8')
-        cart.write('Список покупок\n\n')
+        text_lines = []
+        text_lines.append('Список покупок\n')
+        IngredientRecipe.objects.filter(
+            recipe__cart__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            amount=Sum('amount')
+        )
         for item in IngredientRecipe.objects.filter(
             recipe__cart__user=request.user
         ).values(
-            'recipe__name', 'ingredient__name',
-            'ingredient__measurement_unit', 'amount'
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            amount=Sum('amount')
         ):
-            if prev_name != item['recipe__name']:
-                cart.write(f"Рецепт {item['recipe__name']}:\n")
-                prev_name = item['recipe__name']
-            cart.write(
+            text_lines.append(
                 CART_INGREDIENTS_FORMAT.format(
                     name=item['ingredient__name'],
                     measurement_unit=item['ingredient__measurement_unit'],
                     amount=item['amount']
                 )
             )
-            cart.write('\n')
-
-        return FileResponse(
-            cart, as_attachment=True, filename='shopping_cart.txt'
+        response_content = '\n'.join(text_lines)
+        response = HttpResponse(
+            response_content, content_type='text/plain; charset=utf8'
         )
+        response['Content-Disposition'] = 'attachment; filename={0}'.format(
+            SHOPPING_CART_FILENAME
+            )
+        return response

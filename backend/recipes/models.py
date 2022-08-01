@@ -127,7 +127,14 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        pass
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique favorite'
+            )
+        ]
 
 
 class ShoppingCart(models.Model):
@@ -145,4 +152,11 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        pass
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique cart'
+            )
+        ]
