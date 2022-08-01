@@ -131,7 +131,7 @@ dmypy.json
 
 # .ide
 .idea
-.vscode
+.vscode/
 
 # media
 backend/shopping_cart.txt
