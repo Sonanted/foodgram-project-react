@@ -129,8 +129,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# .idea
+# .ide
 .idea
+.vscode
 
 # media
 backend/shopping_cart.txt
