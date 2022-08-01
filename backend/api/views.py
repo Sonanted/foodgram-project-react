@@ -1,7 +1,6 @@
+from django.db.models.aggregates import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-
-from django.db.models.aggregates import Count, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 from rest_framework import status, validators, viewsets
@@ -13,7 +12,6 @@ from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Tag, Recipe, ShoppingCart
 )
 from users.models import Subscribe, User
-
 from .permissions import IsReadOnly, IsAuthorOrReadOnly, UserPermission
 from .serializers import (
     IngredientSerializer, RecipeCutSerializer, RecipeReadSerializer,
