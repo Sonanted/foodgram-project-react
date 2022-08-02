@@ -21,7 +21,7 @@ SUBSCRIBE_TO_YOURSELF_ERROR = 'Нельзя подписатья на самог
 UNSUBSCRIBE_TO_YOURSELF_ERROR = 'Вы пытаетесь отписаться от самого себя!'
 EXIST_SUBSCRIBE_ERROR = 'Вы уже подписаны на этого пользователя!'
 NON_EXIST_UNSUBSCRIBE_ERROR = 'Вы и так не подписаны на этого пользователя!'
-CART_INGREDIENTS_FORMAT = '\t{name}, {measurement_unit}: {amount}'
+CART_INGREDIENTS_FORMAT = '\t{name}, {measurement_unit}: {total}'
 SHOPPING_CART_FILENAME = 'shopping_cart.txt'
 
 
@@ -183,7 +183,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 CART_INGREDIENTS_FORMAT.format(
                     name=item['ingredient__name'],
                     measurement_unit=item['ingredient__measurement_unit'],
-                    total_amount=item['amount']
+                    total=item['total_amount']
                 )
             )
         response_content = '\n'.join(text_lines)
