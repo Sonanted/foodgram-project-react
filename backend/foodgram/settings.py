@@ -1,7 +1,7 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
-from pathlib import Path
 
 load_dotenv()
 
@@ -10,10 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    os.getenv('ALLOWED_HOST')
+    os.getenv('ALLOWED_HOSTS')
 ]
 
 INSTALLED_APPS = [
@@ -71,7 +71,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT')
     }
-} 
+}
 
 AUTH_USER_MODEL = 'users.User'
 

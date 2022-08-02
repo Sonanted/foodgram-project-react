@@ -5,18 +5,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 from rest_framework import status, validators, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (
-    Favorite, Ingredient, IngredientRecipe, Tag, Recipe, ShoppingCart
-)
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
 from users.models import Subscribe, User
-from .permissions import IsReadOnly, IsAuthorOrReadOnly, UserPermission
-from .serializers import (
-    IngredientSerializer, RecipeCutSerializer, RecipeReadSerializer,
-    RecipeWriteSerializer, SubscribeSerializer, TagSerializer, UserSerializer
-)
+
+from .permissions import IsAuthorOrReadOnly, IsReadOnly, UserPermission
+from .serializers import (IngredientSerializer, RecipeCutSerializer,
+                          RecipeReadSerializer, RecipeWriteSerializer,
+                          SubscribeSerializer, TagSerializer, UserSerializer)
 
 SUBSCRIBE_TO_YOURSELF_ERROR = 'Нельзя подписатья на самого себя!'
 UNSUBSCRIBE_TO_YOURSELF_ERROR = 'Вы пытаетесь отписаться от самого себя!'
@@ -146,12 +145,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe=recipe
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            model.objects.filter(
-                user=request.user,
-                recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        model.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True, methods=['post', 'delete'],
@@ -179,13 +177,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(
-            amount=Sum('total_amount')
+            total_amount=Sum('amount')
         ):
             text_lines.append(
                 CART_INGREDIENTS_FORMAT.format(
                     name=item['ingredient__name'],
                     measurement_unit=item['ingredient__measurement_unit'],
-                    amount=item['total_amount']
+                    total_amount=item['amount']
                 )
             )
         response_content = '\n'.join(text_lines)

@@ -2,10 +2,8 @@ from django.urls import include, path
 from djoser.views import TokenCreateView, TokenDestroyView
 from rest_framework.routers import DefaultRouter
 
-from .views import (
-    IngredientViewSet, RecipeViewSet, SubscribeViewSet, TagViewSet, UserViewSet
-)
-
+from .views import (IngredientViewSet, RecipeViewSet, SubscribeViewSet,
+                    TagViewSet, UserViewSet)
 
 api_router = DefaultRouter()
 api_router.register('users', UserViewSet, basename='users')
