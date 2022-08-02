@@ -8,7 +8,7 @@ services:
       - ./.env
 
   backend:
-    image: sonanted/foodgram-backend:v1.03
+    image: sonanted/foodgram-backend:latest
     restart: always
     volumes:
       - static_value:/app/staticfiles/
@@ -19,7 +19,7 @@ services:
       - ./.env
 
   frontend:
-    image: sonanted/foodgram-frontend:v1.0
+    image: sonanted/foodgram-frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
