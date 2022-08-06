@@ -67,7 +67,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = (IsReadOnly,)
-    filter_backends = (DjangoFilterBackend, IngredientSearchFilter)
+    filter_backends = (DjangoFilterBackend, IngredientFilter)
 
 
 class SubscribeViewSet(viewsets.ModelViewSet):
