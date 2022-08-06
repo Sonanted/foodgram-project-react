@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from users.models import Subscribe, User
-
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly, IsReadOnly, UserPermission
 from .serializers import (IngredientSerializer, RecipeCutSerializer,
                           RecipeReadSerializer, RecipeWriteSerializer,
@@ -67,9 +67,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = (IsReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name',)
-    search_fields = ('name',)
+    filter_backends = (DjangoFilterBackend, IngredientSearchFilter)
 
 
 class SubscribeViewSet(viewsets.ModelViewSet):
@@ -124,9 +122,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = (
-        'is_favorited', 'author', 'is_in_shopping_cart', 'tags'
-    )
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
